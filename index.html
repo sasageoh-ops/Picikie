@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Poptastic 15 Deluxe</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#d63031">
+    <style>
+        :root { --primary: #d63031; --active: #2ecc71; --bg-dark: #121212; }
+        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; -webkit-tap-highlight-color: transparent; user-select: none; }
+        
+        body { 
+            background-color: var(--bg-dark); 
+            font-family: 'Segoe UI', sans-serif; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            overflow: hidden; 
+            touch-action: manipulation; 
+        }
+        
+        /* Game UI */
+        .game-wrapper { 
+            background: linear-gradient(145deg, #ff4757, #cc2e2e); 
+            padding: 25px; 
+            border-radius: 40px; 
+            box-shadow: 0 15px 0 #891b1b, 0 30px 60px rgba(0,0,0,0.6); 
+            text-align: center; 
+            width: 95vw; 
+            max-width: 380px; 
+            z-index: 10; 
+        }
+
+        .dashboard { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            background: rgba(0, 0, 0, 0.4); 
+            padding: 15px; 
+            border-radius: 20px; 
+            margin-bottom: 20px; 
+            color: #f1c40f; 
+            font-family: monospace; 
+            font-weight: bold; 
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.5); 
+        }
+
+        .board { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 12px; 
+            background: linear-gradient(145deg, #f39c12, #d35400); 
+            padding: 18px; 
+            border-radius: 25px; 
+            box-shadow: inset 0 8px 20px rgba(0,0,0,0.4); 
+        }
+
+        .hole { 
+            aspect-ratio: 1/1; 
+            background: rgba(0,0,0,0.3); 
+            border-radius: 50%; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            position: relative; 
+            box-shadow: inset 0 5px 10px rgba(0,0,0,0.5); 
+        }
+
+        .bubble { 
+            width: 88%; 
+            height: 88%; 
+            background: radial-gradient(circle at 30% 30%, #ffffff, #dcdde1); 
+            border-radius: 50%; 
+            border: none; 
+            cursor: pointer; 
+            box-shadow: 0 6px 0 #95a5a6, 0 8px 15px rgba(0,0,0,0.4); 
+            transition: 0.05s; 
+            transform: translateY(-5px); 
+        }
+
+        .bubble.active { 
+            background: radial-gradient(circle at 30% 30%, #55efc4, #2ecc71); 
+            box-shadow: 0 6px 0 #27ae60, 0 0 20px rgba(46, 204, 113, 0.5); 
+            animation: pulse 0.8s infinite alternate; 
+        }
+
+        @keyframes pulse { 
+            from { transform: translateY(-5px) scale(1); } 
+            to { transform: translateY(-5px) scale(1.08); } 
+        }
+
+        .bubble.pressed { 
+            transform: translateY(2px); 
+            box-shadow: 0 1px 0 #95a5a6, inset 0 5px 10px rgba(0,0,0,0.5); 
+            background: #aaa; 
+        }
+
+        /* Modal Pop-up */
+        #modal { 
+            position: fixed; 
+            top: 0; left: 0; 
+            width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.9); 
+            display: none; 
+            justify-content: center; 
+            align-items: center; 
+            z-index: 100; 
+            backdrop-filter: blur(8px); 
+        }
+
+        .modal-content { 
+            background: white; 
+            padding: 40px; 
+            border-radius: 30px; 
+            text-align: center; 
+            width: 80%; 
+            max-width: 320px; 
+            transform: scale(0.7); 
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+        }
+
+        #modal.show { display: flex; }
+        #modal.show .modal-content { transform: scale(1); }
+        .score-val { font-size: 4rem; font-weight: 900; color: #2d3436; margin: 10px 0; }
+        #btn-start, #btn-restart { 
+            background: #f1c40f; 
+            color: #2c3e50; 
+            border: none; 
+            padding: 15px 40px; 
+            border-radius: 20px; 
+            font-size: 1.2rem; 
+            font-weight: 900; 
+            cursor: pointer; 
+            box-shadow: 0 5px 0 #c29d0b; 
+        }
+        #btn-restart { background: var(--active); color: white; box-shadow: 0 5px 0 #218c74; }
+    </style>
+</head>
+<body>
+    <div class="game-wrapper">
+        <h1 style="color: white; margin-bottom: 15px; font-style: italic;">POPTASTIC 15</h1>
+        <div class="dashboard">
+            <div>SKOR: <span id="score">0</span></div>
+            <div>WAKTU: <span id="timer">10.0</span>s</div>
+        </div>
+        <div class="board" id="game-board"></div>
+        <div style="margin-top: 25px;"><button id="btn-start">START GAME</button></div>
+    </div>
+
+    <div id="modal">
+        <div class="modal-content">
+            <h2 id="modal-title">GAME OVER</h2>
+            <div class="score-val" id="final-score">0</div>
+            <button id="btn-restart">MAIN LAGI</button>
+        </div>
+    </div>
+
+    <script>
+        const board = document.getElementById('game-board');
+        const scoreDisplay = document.getElementById('score');
+        const timerDisplay = document.getElementById('timer');
+        const btnStart = document.getElementById('btn-start');
+        const modal = document.getElementById('modal');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const btnRestart = document.getElementById('btn-restart');
+
+        let score = 0, timeLeft = 10, isPlaying = false, activeIndices = [];
+        let timerInterval;
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSfx(freq, type, vol, dur) {
+            const osc = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            g.gain.setValueAtTime(vol, audioCtx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + dur);
+            osc.connect(g); g.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + dur);
+        }
+
+        for (let i = 0; i < 15; i++) {
+            const hole = document.createElement('div');
+            hole.classList.add('hole');
+            const b = document.createElement('button');
+            b.classList.add('bubble');
+            b.addEventListener('pointerdown', (e) => { e.preventDefault(); handlePress(i); });
+            hole.appendChild(b); board.appendChild(hole);
+        }
+        const bubbles = document.querySelectorAll('.bubble');
+
+        function startGame() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            score = 0; timeLeft = 10.0; isPlaying = true;
+            scoreDisplay.innerText = score; btnStart.style.display = 'none';
+            modal.classList.remove('show'); spawnBatch();
+            timerInterval = setInterval(() => {
+                if(isPlaying) {
+                    timeLeft -= 0.1;
+                    if(timeLeft <= 0) endGame("WAKTU HABIS!");
+                    timerDisplay.innerText = Math.max(0, timeLeft).toFixed(1);
+                }
+            }, 100);
+        }
+
+        function spawnBatch() {
+            if(!isPlaying) return;
+            bubbles.forEach(b => b.classList.remove('active'));
+            activeIndices = [];
+            let count = score < 20 ? 3 : score < 50 ? 4 : 5;
+            while(activeIndices.length < count) {
+                let r = Math.floor(Math.random() * 15);
+                if(!activeIndices.includes(r)) { activeIndices.push(r); bubbles[r].classList.add('active'); }
+            }
+        }
+
+        function handlePress(index) {
+            if(!isPlaying) return;
+            const b = bubbles[index];
+            b.classList.add('pressed'); setTimeout(() => b.classList.remove('pressed'), 100);
+            if(navigator.vibrate) navigator.vibrate(60);
+
+            if(activeIndices.includes(index)) {
+                playSfx(1100, 'triangle', 0.5, 0.1);
+                score++; scoreDisplay.innerText = score; timeLeft += 0.25;
+                activeIndices = activeIndices.filter(i => i !== index); b.classList.remove('active');
+                if(activeIndices.length === 0) { timeLeft += 0.4; setTimeout(spawnBatch, 200); }
+            } else { endGame("SALAH TEKAN!"); }
+        }
+
+        function endGame(title) {
+            isPlaying = false; clearInterval(timerInterval);
+            playSfx(100, 'sawtooth', 0.7, 0.7);
+            document.getElementById('modal-title').innerText = title;
+            finalScoreDisplay.innerText = score; modal.classList.add('show');
+        }
+
+        btnStart.onclick = startGame;
+        btnRestart.onclick = startGame;
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+    </script>
+</body>
+</html>

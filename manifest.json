@@ -1,0 +1,16 @@
+{
+  "name": "Poptastic 15 Deluxe",
+  "short_name": "Poptastic",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#121212",
+  "theme_color": "#d63031",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "1024x1024",
+      "type": "image/png"
+    }
+  ]
+}
